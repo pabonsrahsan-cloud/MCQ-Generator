@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCQ Slide Generator — Shikho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --blue:#354894; --pink:#CF278D; --cyan:#00B0F0; --amber:#FFC000; --bg:#0d0f17; --card:#161a2e; --line:#2a3155; --text:#e8ebff; --muted:#9aa3c7; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Hind Siliguri",system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:18px 28px; background:linear-gradient(90deg,#1a1f3a,#0d0f17); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; }
+  header h1 { margin:0; font-size:22px; } header span { color:var(--muted); font-size:14px; }
+  main { max-width:1180px; margin:0 auto; padding:22px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:18px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  label { font-size:14px; color:var(--muted); }
+  input[type=text], textarea, select { width:100%; background:#0f1222; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:inherit; font-size:15px; }
+  textarea { resize:vertical; min-height:44px; }
+  textarea.code { font-family:Consolas,"DejaVu Sans Mono",monospace; font-size:14px; }
+  button { font:inherit; font-weight:600; border:0; border-radius:8px; padding:9px 16px; cursor:pointer; background:#2a3155; color:var(--text); }
+  button.primary { background:var(--pink); color:#fff; } button.blue { background:var(--blue); color:#fff; }
+  button.small { padding:4px 10px; font-size:13px; } button:disabled { opacity:.5; cursor:wait; }
+  .drop { border:2px dashed var(--line); border-radius:12px; padding:26px; text-align:center; color:var(--muted); cursor:pointer; }
+  .drop.over { border-color:var(--pink); color:var(--text); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .card { background:#11152a; border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  .card h3 { margin:0; font-size:17px; } .card .head { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .opt { display:flex; gap:8px; align-items:center; } .opt b { background:var(--pink); border-radius:6px; padding:4px 10px; color:#fff; }
+  .opt input[type=radio] { width:20px; height:20px; accent-color:#00B050; }
+  .field { margin-top:8px; } .hide { display:none; }
+  .warn { background:#3a2a0a; border:1px solid #8a6a1a; color:#ffd98a; border-radius:10px; padding:10px 14px; font-size:14px; }
+  .err { background:#3a0f16; border-color:#8a2030; color:#ffb3c0; }
+  .tag { font-size:12px; border-radius:20px; padding:2px 10px; background:#2a3155; }
+  .help { font-size:14px; color:var(--muted); line-height:1.7; } .help code { background:#0f1222; padding:1px 6px; border-radius:5px; color:#ffd98a; }
+  .stim { border-left:0; background:#211b08; border-color:#6b5512; }
+  .sticky { position:sticky; bottom:0; background:rgba(13,15,23,.94); padding:12px 0; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<header><h1>MCQ Slide Generator</h1><span>ফাইল দাও → MCQ দেখে ঠিক করো → Shikho MCQ template-এ PPT নাও</span></header>
+<main>
+  <section class="panel">
+    <div class="drop" id="drop">এখানে <b>.docx / .pptx / .pdf / .txt</b> ফাইল টেনে আনো বা ক্লিক করো
+      <input type="file" id="file" accept=".docx,.pptx,.pdf,.txt" class="hide"></div>
+    <details style="margin-top:12px"><summary>অথবা লেখা paste করো</summary>
+      <textarea id="paste" rows="8" placeholder="১. প্রশ্ন ...&#10;(ক) ... (খ) ...&#10;(গ) ... (ঘ) ...&#10;উত্তর: খ"></textarea>
+      <button class="blue" id="parseText" style="margin-top:8px">লেখা থেকে MCQ বের করো</button>
+    </details>
+    <details style="margin-top:10px"><summary>ফাইল কেমন হলে সবচেয়ে ভালো কাজ করে?</summary>
+      <div class="help">
+        প্রশ্নের শুরুতে নম্বর: <code>১.</code> বা <code>12.</code> · option: <code>(ক)</code> <code>ক.</code> <code>A.</code> — এক লাইনে একাধিক থাকলেও চলবে ·
+        উক্তি: <code>i.</code> <code>(ii)</code> তারপর <code>নিচের কোনটি সঠিক?</code> ·
+        বোর্ড: <code>[ঢা. বো. ২৩]</code> (একাধিক হলে <code>;</code>) · উত্তর: <code>উত্তর: খ</code> · ব্যাখ্যা: <code>ব্যাখ্যা: ...</code> ·
+        উদ্দীপক: <code>নিচের উদ্দীপকটি পড়ে ৩০ ও ৩১ নম্বর প্রশ্নের উত্তর দাও</code> তারপর উদ্দীপকের লেখা ·
+        কবিতা / উদ্ধৃতি: প্রশ্নের শুরুতে উদ্ধৃতি চিহ্নের ভেতরে আলাদা লাইনে ·
+        সমীকরণ: Word / PowerPoint-এর equation আপনা-আপনি আসে; নিজে লিখতে চাইলে <code>$\frac{1}{2}$</code>, <code>$\vec{P}=2\hat{i}$</code>, <code>$x^{2}$</code>, <code>$\overline{A+B}$</code>।
+      </div>
+    </details>
+  </section>
+
+  <div id="msgs"></div>
+
+  <section class="panel" id="settings">
+    <div class="grid2">
+      <div><label>অধ্যায়ের নাম (slide-এর উপরে বাঁয়ে)</label><input type="text" id="chapter" placeholder="যেমন: ভেক্টর"></div>
+      <div><label>ফাইলের নাম</label><input type="text" id="fname" value="MCQ_slides"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="ans" checked> প্রতিটি প্রশ্নের পরে উত্তর slide (সঠিক option নীল + ✓)</label>
+    </div>
+  </section>
+
+  <section id="stimuli"></section>
+  <section id="list"></section>
+
+  <div class="sticky"><div class="row" style="max-width:1180px;margin:0 auto">
+    <button id="addQ">+ নতুন MCQ</button>
+    <button id="addS">+ নতুন উদ্দীপক</button>
+    <button id="saveJ">JSON সেভ</button>
+    <button id="loadJ">JSON খোলো</button><input type="file" id="jfile" accept=".json" class="hide">
+    <span style="flex:1"></span>
+    <span id="count" class="tag">0 MCQ</span>
+    <button class="primary" id="gen">PPT বানাও ⬇</button>
+  </div></div>
+</main>
+
+<script>
+const S = { mcqs: [], stimuli: [] };
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (t) => (t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+const LET = ["ক", "খ", "গ", "ঘ"];
+const TYPES = { single: "সাধারণ", roman: "বহুপদী (i, ii, iii)", quote: "উদ্ধৃতি / কবিতাংশ", stimulus: "উদ্দীপক-ভিত্তিক" };
+
+function msg(list, isErr) {
+  $("#msgs").innerHTML = list && list.length ? `<div class="warn ${isErr ? "err" : ""}">${list.map(esc).join("<br>")}</div>` : "";
+}
+
+function blankQ(num) { return { num, type: "single", stem: "", statements: [], options: ["", "", "", ""], answer: null, boards: [], explanation: "", stimulus: null, quote: "", code: "" }; }
+
+function render() {
+  $("#count").textContent = S.mcqs.length + " MCQ";
+  $("#stimuli").innerHTML = S.stimuli.map((s, i) => `
+    <div class="card stim" data-s="${i}">
+      <div class="head"><h3>${esc(s.label || "উদ্দীপক")} (${esc(s.id)})</h3>
+        <select data-k="label" style="width:auto"><option ${s.label !== "উদ্ধৃতি" ? "selected" : ""}>উদ্দীপক</option><option ${s.label === "উদ্ধৃতি" ? "selected" : ""}>উদ্ধৃতি</option></select>
+        <span style="flex:1"></span><button class="small" data-act="delS">মুছে ফেলো</button></div>
+      <textarea data-k="text" rows="3">${esc(s.text)}</textarea>
+      <div class="grid2 field">
+        <div><label>বোর্ড (; দিয়ে আলাদা)</label><input type="text" data-k="boards" value="${esc((s.boards || []).join("; "))}"></div>
+        <div><label>নির্দেশনা লাইন (খালি রাখলে আপনা-আপনি)</label><input type="text" data-k="header" value="${esc(s.header || "")}"></div>
+      </div>
+    </div>`).join("");
+  const sOpts = (sel) => `<option value="">— নেই —</option>` + S.stimuli.map(s => `<option value="${esc(s.id)}" ${sel === s.id ? "selected" : ""}>${esc(s.id)}: ${esc((s.text || "").slice(0, 40))}…</option>`).join("");
+  $("#list").innerHTML = S.mcqs.map((q, i) => `
+    <div class="card" data-q="${i}">
+      <div class="head">
+        <h3>MCQ</h3><input type="text" data-k="num" value="${esc(String(q.num ?? ""))}" style="width:70px">
+        <select data-k="type" style="width:auto">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${q.type === k ? "selected" : ""}>${v}</option>`).join("")}</select>
+        ${q.answer == null ? '<span class="tag" style="background:#6b1a2a">উত্তর বাছা হয়নি</span>' : ""}
+        <span style="flex:1"></span>
+        <button class="small" data-act="up">↑</button><button class="small" data-act="down">↓</button>
+        <button class="small" data-act="dup">কপি</button><button class="small" data-act="del">মুছে ফেলো</button>
+      </div>
+      <div class="field ${q.type === "stimulus" ? "" : "hide"}"><label>কোন উদ্দীপক</label><select data-k="stimulus">${sOpts(q.stimulus)}</select></div>
+      <div class="field ${q.type === "quote" ? "" : "hide"}"><label>উদ্ধৃতি / কবিতাংশ (প্রতিটি লাইন আলাদা)</label><textarea data-k="quote" rows="2">${esc(q.quote || "")}</textarea></div>
+      <div class="field"><label>প্রশ্ন</label><textarea data-k="stem" rows="2">${esc(q.stem)}</textarea></div>
+      <div class="field ${q.type === "roman" ? "" : "hide"}"><label>উক্তি (প্রতি লাইনে একটি: i, ii, iii)</label><textarea data-k="statements" rows="3">${esc((q.statements || []).join("\n"))}</textarea></div>
+      <details class="field" ${q.code ? "open" : ""}><summary><label>কোড (ঐচ্ছিক — বাঁয়ে কোড box)</label></summary><textarea class="code" data-k="code" rows="4">${esc(q.code || "")}</textarea></details>
+      <div class="grid2 field">${q.options.map((o, j) => `
+        <div class="opt"><input type="radio" name="a${i}" data-k="answer" value="${j}" ${q.answer === j ? "checked" : ""} title="সঠিক উত্তর"><b>${LET[j]}</b><input type="text" data-k="opt" data-j="${j}" value="${esc(o)}"></div>`).join("")}
+      </div>
+      <div class="grid2 field">
+        <div><label>বোর্ড (; দিয়ে আলাদা — না থাকলে খালি)</label><input type="text" data-k="boards" value="${esc((q.boards || []).join("; "))}"></div>
+        <div><label>ব্যাখ্যা (Speaker Notes-এ যাবে)</label><textarea data-k="explanation" rows="1">${esc(q.explanation || "")}</textarea></div>
+      </div>
+    </div>`).join("");
+}
+
+document.addEventListener("input", (e) => {
+  const k = e.target.dataset.k; if (!k) return;
+  const qc = e.target.closest("[data-q]"), sc = e.target.closest("[data-s]");
+  if (qc) {
+    const q = S.mcqs[+qc.dataset.q], v = e.target.value;
+    if (k === "opt") q.options[+e.target.dataset.j] = v;
+    else if (k === "answer") q.answer = +v;
+    else if (k === "boards") q.boards = v.split(";").map(x => x.trim()).filter(Boolean);
+    else if (k === "statements") q.statements = v.split("\n").map(x => x.trim()).filter(Boolean);
+    else if (k === "num") q.num = v;
+    else if (k === "stimulus") q.stimulus = v || null;
+    else q[k] = v;
+    if (k === "type" || k === "answer") render();
+  } else if (sc) {
+    const s = S.stimuli[+sc.dataset.s], v = e.target.value;
+    if (k === "boards") s.boards = v.split(";").map(x => x.trim()).filter(Boolean); else s[k] = v;
+    if (k === "label") render();
+  }
+});
+document.addEventListener("change", (e) => { if (e.target.tagName === "SELECT") e.target.dispatchEvent(new Event("input", { bubbles: true })); });
+
+document.addEventListener("click", (e) => {
+  const act = e.target.dataset.act; if (!act) return;
+  const qc = e.target.closest("[data-q]"), sc = e.target.closest("[data-s]");
+  if (qc) {
+    const i = +qc.dataset.q;
+    if (act === "del") S.mcqs.splice(i, 1);
+    if (act === "dup") S.mcqs.splice(i + 1, 0, JSON.parse(JSON.stringify(S.mcqs[i])));
+    if (act === "up" && i > 0) [S.mcqs[i - 1], S.mcqs[i]] = [S.mcqs[i], S.mcqs[i - 1]];
+    if (act === "down" && i < S.mcqs.length - 1) [S.mcqs[i + 1], S.mcqs[i]] = [S.mcqs[i], S.mcqs[i + 1]];
+  }
+  if (sc && act === "delS") {
+    const id = S.stimuli[+sc.dataset.s].id;
+    S.stimuli.splice(+sc.dataset.s, 1);
+    S.mcqs.forEach(q => { if (q.stimulus === id) { q.stimulus = null; if (q.type === "stimulus") q.type = "single"; } });
+  }
+  render();
+});
+
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) { let t = await r.text(); try { t = JSON.parse(t).error; } catch (_) {} throw new Error(t || r.statusText); }
+  return r;
+}
+
+function load(res) {
+  S.mcqs = res.mcqs.map(q => Object.assign(blankQ(q.num), q));
+  S.stimuli = res.stimuli || [];
+  render(); msg(res.warnings);
+}
+
+async function parseFile(f) {
+  if (f.size > 3 * 1024 * 1024) { msg(["ফাইলটা ৩ MB-এর বেশি — ছবি কমিয়ে বা ভাগ করে দাও।"], true); return; }
+  msg(["পড়া হচ্ছে…"]);
+  const buf = new Uint8Array(await f.arrayBuffer());
+  let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  try { load(await (await post("/api/parse", { filename: f.name, data: btoa(bin) })).json()); $("#fname").value = f.name.replace(/\.[^.]+$/, "") + "_slides"; }
+  catch (err) { msg(["পড়া গেল না: " + err.message], true); }
+}
+
+const drop = $("#drop");
+drop.onclick = () => $("#file").click();
+$("#file").onchange = (e) => e.target.files[0] && parseFile(e.target.files[0]);
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && parseFile(e.dataTransfer.files[0]); };
+$("#parseText").onclick = async () => {
+  try { load(await (await post("/api/parse", { text: $("#paste").value })).json()); } catch (err) { msg([err.message], true); }
+};
+$("#addQ").onclick = () => { S.mcqs.push(blankQ((+S.mcqs.at(-1)?.num || 0) + 1)); render(); window.scrollTo(0, document.body.scrollHeight); };
+$("#addS").onclick = () => { S.stimuli.push({ id: "s" + (S.stimuli.length + 1) + "_" + Date.now() % 1000, label: "উদ্দীপক", text: "", boards: [], header: "" }); render(); };
+$("#saveJ").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 1)], { type: "application/json" }));
+  a.download = ($("#fname").value || "mcq") + ".json"; a.click();
+};
+$("#loadJ").onclick = () => $("#jfile").click();
+$("#jfile").onchange = async (e) => { const t = await e.target.files[0].text(); const d = JSON.parse(t); load({ mcqs: d.mcqs, stimuli: d.stimuli, warnings: [] }); };
+
+$("#gen").onclick = async () => {
+  if (!S.mcqs.length) { msg(["কোনো MCQ নেই।"], true); return; }
+  const btn = $("#gen"); btn.disabled = true; btn.textContent = "বানানো হচ্ছে…";
+  try {
+    const mcqs = S.mcqs.map(q => Object.assign({}, q, {
+      num: q.num || "", statements: q.type === "roman" ? q.statements : [],
+      quote: q.type === "quote" ? q.quote : "", stimulus: q.type === "stimulus" ? q.stimulus : null,
+    }));
+    const r = await post("/api/generate", { mcqs, stimuli: S.stimuli, chapter: $("#chapter").value.trim(), answer_slides: $("#ans").checked, filename: $("#fname").value.trim() || "MCQ_slides" });
+    const w = JSON.parse(decodeURIComponent(r.headers.get("X-Warnings") || "%5B%5D"));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(await r.blob()); a.download = ($("#fname").value.trim() || "MCQ_slides") + ".pptx"; a.click();
+    msg(w.length ? ["PPT তৈরি হয়েছে। খেয়াল করো:", ...w] : ["PPT তৈরি হয়েছে ✓"]);
+  } catch (err) { msg(["PPT বানানো গেল না: " + err.message], true); }
+  btn.disabled = false; btn.textContent = "PPT বানাও ⬇";
+};
+render();
+</script>
+</body>
+</html>
